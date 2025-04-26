@@ -64,6 +64,44 @@ class PrepareVectorDB:
         if isinstance(self.data_directory, list):
             print("Loading the uploaded documents...")
             docs = []
-            
+            doc_dirs = os.listdir(self.data_directory)
+            for doc_dir in doc_dirs:
+                doc_list = os.listdir(self.data_directory, doc_dir)
+                for doc in doc_list:
+                    docs.extend(PyPDFLoader(os.path.join(self.data_directory, doc_dir, doc)).load())
+                    doc_counter += 1
+            print(f"Number of Loadedd documents: {doc_counter}")
+            print(f"Number of pages: {len(docs)}\n\n")
+        else:
+            print("Loading documents Manually...")
+            doc_list = os.listdir(self.data_directory)
+            docs = []
+            for doc in doc_list:
+                docs.extend(PyPDFLoader(
+                    self.data_directory, 
+                    doc
+                ).load()
+                )
+                doc_counter += 1
+            print(f"Number of Loadedd documents: {doc_counter}")
+            print(f"Number of pages: {len(docs)}\n\n")
+        
+        return docs
+    
+    def __chunk_documents(self, docs: List) -> List:
+        """
+        CHunk the loaded documents using the specified text splitter.
+
+        Params: 
+            Chroma: The created VectorDB
+        """
+        print(f"Chunking Begins...")
+        chunked_docs = self.tex_splitter.split_documents(docs)
+        print(f"Number of chunks: {len(chunked_docs)}\n\n")
+
+        return chunked_docs
+    
+
+
 
 
