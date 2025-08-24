@@ -66,7 +66,7 @@ class PrepareVectorDB:
             docs = []
             doc_dirs = os.listdir(self.data_directory)
             for doc_dir in doc_dirs:
-                doc_list = os.listdir(self.data_directory, doc_dir)
+                doc_list = os.listdir(os.path.join(self.data_directory, doc_dir))
                 for doc in doc_list:
                     docs.extend(PyPDFLoader(os.path.join(self.data_directory, doc_dir, doc)).load())
                     doc_counter += 1
