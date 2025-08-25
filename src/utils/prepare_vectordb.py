@@ -1,9 +1,11 @@
-from langchain.vectorstores import Chroma
-from langchain.document_loaders import PyPDFLoader
+from langchain_community.vectorstores import Chroma
+from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import os
+from typing import Type
 from typing import List
-from langchain.embeddings.openai import OpenAIEmbeddings
+# from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 
 
 class PrepareVectorDB:
@@ -26,7 +28,7 @@ class PrepareVectorDB:
             self,
             data_directory: str,
             persist_directory: str,
-            embedding_model_engine: str,
+            embedding_model_name: str,
             chunk_size: int,
             chunk_overlap: int
     ) -> None:
@@ -41,7 +43,7 @@ class PrepareVectorDB:
             chunk_overlap (int): The overlap between chunks.
         """
 
-        self.embedding_model_engine = embedding_model_engine
+        # self.embedding_model_engine = embedding_model_engine
         self.tex_splitter = RecursiveCharacterTextSplitter(
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
@@ -49,7 +51,8 @@ class PrepareVectorDB:
         )
         self.data_directory = data_directory
         self.persist_directory = persist_directory
-        self.embedding = OpenAIEmbeddings()
+        # self.embedding = OpenAIEmbeddings()
+        self.embedding = HuggingFaceEmbeddings(model_name=embedding_model_name)
 
 
     def __load_all_documents(self) -> List:
@@ -100,8 +103,43 @@ class PrepareVectorDB:
         print(f"Number of chunks: {len(chunked_docs)}\n\n")
 
         return chunked_docs
+
+    def create_vectordb(self):
+        """
+        Load, chunk and create a vectorDB with openAI embeddings and save it.
+
+        returns: 
+            choram vectorDB
+        """
+
+        docs = self.__load_all_documents()
+        chunked_docs = self.__chunk_documents(docs)
+
+        print(f"Preparing vectordb. Please wait...")
+
+        vectordb = Chroma.from_documents(
+            documents=chunked_docs,
+            embedding=self.embedding,
+            persist_directory=self.persist_directory,
+        )
+
+        print(f"VectorDB is created and saved!")
+        print(f"Number of vectors in vectorDB, {vectordb._collection.count()}\n\n")
+
+        return vectordb   
+
+
+
+if __name__ == "__main__":
+    embedding_engine = 'BAAI/bge-m3'
+    pdb = PrepareVectorDB(
+        data_directory='data/docs',
+        persist_directory='data/chroma_db',
+        embedding_model_name=embedding_engine,
+        chunk_size=1500, 
+        chunk_overlap=300
+    )
+
+    pdb.create_vectordb()
+
     
-
-
-
-
