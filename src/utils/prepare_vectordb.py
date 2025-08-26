@@ -80,11 +80,8 @@ class PrepareVectorDB:
             doc_list = os.listdir(self.data_directory)
             docs = []
             for doc in doc_list:
-                docs.extend(PyPDFLoader(
-                    self.data_directory, 
-                    doc
-                ).load()
-                )
+                document = os.path.join(self.data_directory, doc)
+                docs.extend(PyPDFLoader(document).load())
                 doc_counter += 1
             print(f"Number of Loadedd documents: {doc_counter}")
             print(f"Number of pages: {len(docs)}\n\n")
@@ -133,8 +130,8 @@ class PrepareVectorDB:
 if __name__ == "__main__":
     embedding_engine = 'BAAI/bge-m3'
     pdb = PrepareVectorDB(
-        data_directory='data/docs',
-        persist_directory='data/chroma_db',
+        data_directory='./data/docs',
+        persist_directory='./data/chroma_db',
         embedding_model_name=embedding_engine,
         chunk_size=1500, 
         chunk_overlap=300
