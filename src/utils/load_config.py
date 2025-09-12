@@ -65,12 +65,42 @@ class LoadConfig:
         ## LLM configs
         self.llm_model = app_config['llm_config']['model']
         self.llm_system_role = app_config['llm_config']['llm_system_role']
+        self.temperature = app_config['llm_config']['temperature']
 
         ## directories
         self.persist_directory = app_config['directories']['persist_directory']
         self.custom_persist_directory = app_config['directories']['custom_persist_directory']
+        self.data_directory = app_config['directories']['data_directory']
 
         ## Embedding model
         self.embedding_model = app_config['embedding_model_config']['model']
+
+        ## Retrieval config
+        self.k = app_config['retrieval_config']['k']
+        
+        ## Splitter config
+        self.chunk_size = app_config['splitter_config']['chunk_size']
+        self.chunk_overlap = app_config['splitter_config']['chunk_overlap']
+
+        ## Summarizer config
+        self.max_final_token = app_config['summarizer_config']['max_final_token']
+        self.token_threshold = app_config['summarizer_config']['token_threshold']
+        self.summarizer_llm_system_role = app_config['summarizer_config']['summarizer_llm_system_role']
+        self.character_overlap = app_config['summarizer_config']['character_overlap']
+        self.final_summarizer_llm_system_role = app_config[
+            "summarizer_config"]["final_summarizer_llm_system_role"]
+        
+        ## Memory
+        self.number_of_q_a_pairs = app_config['memory']['number_of_q_a_pairs']
+
+        # Load OpenAI credentials
+        self.load_openai_cfg()
+
+        # clean up the upload doc vectordb if it exists
+        self.create_directory(self.persist_directory)
+        self.remove_directory(self.custom_persist_directory)
+
+    
+        
 
         
