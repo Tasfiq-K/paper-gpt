@@ -94,11 +94,27 @@ class LoadConfig:
         self.number_of_q_a_pairs = app_config['memory']['number_of_q_a_pairs']
 
         # Load OpenAI credentials
-        self.load_openai_cfg()
+        self.load_groq_cfg()
 
         # clean up the upload doc vectordb if it exists
         self.create_directory(self.persist_directory)
         self.remove_directory(self.custom_persist_directory)
+
+    def load_groq_api(self):
+        """
+        Load Groq API key securely from environment variables.
+        """
+
+        self.api_key = os.getenv("MY_API_KEY")
+
+        if not self.api_key:
+            raise ValueError("Groq API key not found! Please set MY_API_KEY in your .env or environment.")
+
+        # Store it inside the class instance for reuse
+        # self.groq_api_key = api_key
+        return self.api_key
+
+
 
     
         
