@@ -5,7 +5,7 @@ directories:
   custom_persist_directory: data/vectordb/uploaded/chroma
 
 embedding_model_config:
-  model: "BAAI/bge-m3"
+  model: "text-embedding-3-large"
 
 llm_config:
   llm_model: "model_name"
