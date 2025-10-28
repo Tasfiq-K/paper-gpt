@@ -1,11 +1,16 @@
-from langchain_community.vectorstores import Chroma
-from langchain_community.document_loaders import PyPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+# from langchain_community.vectorstores import Chroma
 import os
-from typing import Type
-from typing import List
+from typing import List, Type
+
+from langchain_chroma import Chroma
+from langchain_community.document_loaders import PyPDFLoader
+
 # from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain_huggingface.embeddings import HuggingFaceEmbeddings
+from langchain_openai import OpenAIEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+# from langchain_huggingface.embeddings import HuggingFaceEmbeddings
+from utils.load_config import LoadConfig
 
 
 class PrepareVectorDB:
@@ -25,12 +30,12 @@ class PrepareVectorDB:
     """
 
     def __init__(
-            self,
-            data_directory: str,
-            persist_directory: str,
-            embedding_model_name: str,
-            chunk_size: int,
-            chunk_overlap: int
+        self,
+        data_directory: str,
+        persist_directory: str,
+        embedding_model_name: str,
+        chunk_size: int,
+        chunk_overlap: int,
     ) -> None:
         """
         Initializes the PrepareVectorDB instance.
@@ -44,22 +49,21 @@ class PrepareVectorDB:
         """
 
         # self.embedding_model_engine = embedding_model_engine
-        self.tex_splitter = RecursiveCharacterTextSplitter(
+        self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
             separators=["\n\n", "\n", " ", ""],
         )
         self.data_directory = data_directory
         self.persist_directory = persist_directory
-        # self.embedding = OpenAIEmbeddings()
-        self.embedding = HuggingFaceEmbeddings(model_name=embedding_model_name)
-
+        self.embedding = OpenAIEmbeddings(model=embedding_model_name)
+        # self.embedding = HuggingFaceEmbeddings(model_name=embedding_model_name)
 
     def __load_all_documents(self) -> List:
         """
         Load all docs from the specified directory or directories.
 
-        Returns: 
+        Returns:
             List: A list of loaded docs.
         """
 
@@ -71,7 +75,11 @@ class PrepareVectorDB:
             for doc_dir in doc_dirs:
                 doc_list = os.listdir(os.path.join(self.data_directory, doc_dir))
                 for doc in doc_list:
-                    docs.extend(PyPDFLoader(os.path.join(self.data_directory, doc_dir, doc)).load())
+                    docs.extend(
+                        PyPDFLoader(
+                            os.path.join(self.data_directory, doc_dir, doc)
+                        ).load()
+                    )
                     doc_counter += 1
             print(f"Number of Loadedd documents: {doc_counter}")
             print(f"Number of pages: {len(docs)}\n\n")
@@ -85,18 +93,18 @@ class PrepareVectorDB:
                 doc_counter += 1
             print(f"Number of Loadedd documents: {doc_counter}")
             print(f"Number of pages: {len(docs)}\n\n")
-        
+
         return docs
-    
+
     def __chunk_documents(self, docs: List) -> List:
         """
         CHunk the loaded documents using the specified text splitter.
 
-        Params: 
+        Params:
             Chroma: The created VectorDB
         """
         print(f"Chunking Begins...")
-        chunked_docs = self.tex_splitter.split_documents(docs)
+        chunked_docs = self.text_splitter.split_documents(docs)
         print(f"Number of chunks: {len(chunked_docs)}\n\n")
 
         return chunked_docs
@@ -105,7 +113,7 @@ class PrepareVectorDB:
         """
         Load, chunk and create a vectorDB with openAI embeddings and save it.
 
-        returns: 
+        returns:
             choram vectorDB
         """
 
@@ -123,20 +131,19 @@ class PrepareVectorDB:
         print(f"VectorDB is created and saved!")
         print(f"Number of vectors in vectorDB, {vectordb._collection.count()}\n\n")
 
-        return vectordb   
-
+        return vectordb
 
 
 if __name__ == "__main__":
-    embedding_engine = 'BAAI/bge-m3'
+    APPCFG = LoadConfig()
+    embedding_engine = APPCFG["embedding_model_config"]["model"]
+    # embedding_engine = "BAAI/bge-m3"
     pdb = PrepareVectorDB(
-        data_directory='./data/docs',
-        persist_directory='./data/chroma_db',
+        data_directory="./data/docs",
+        persist_directory="./data/chroma_db",
         embedding_model_name=embedding_engine,
-        chunk_size=1500, 
-        chunk_overlap=300
+        chunk_size=1500,
+        chunk_overlap=300,
     )
 
     pdb.create_vectordb()
-
-    
